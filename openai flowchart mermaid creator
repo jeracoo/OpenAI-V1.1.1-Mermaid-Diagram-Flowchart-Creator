@@ -1,0 +1,68 @@
+import openai
+import os
+from IPython.display import display, Markdown
+
+# Assuming the OPENAI_API_KEY is set in your environment variables
+openai.api_key = 'XXXXXXXXXX'
+
+# Function to ask user what they want to make a flowchart diagram of
+def get_flowchart_description():
+    description = input("What would you like to create a flowchart diagram of? Please describe the process or system: ")
+    return description
+
+# Function to ask user for the type of flowchart they want
+def get_flowchart_type():
+    print("\nWhat type of flowchart diagram are you interested in creating?")
+    print("1. Process Flowchart")
+    print("2. Workflow Diagram")
+    print("3. Organizational Chart")
+    print("4. Data Flow Diagram")
+    print("5. Other")
+    choice = input("Please type the number of your choice: ")
+    return choice
+
+# Function to create tick box list for the user's choice of flowchart diagram
+def create_tick_box_list(choice):
+    options = ["Process Flowchart", "Workflow Diagram", "Organizational Chart", "Data Flow Diagram", "Other"]
+    ticked_options = ["[x] " + options[int(choice)-1] if str(index+1) == choice else "[ ] " + option for index, option in enumerate(options)]
+    return "\n".join(ticked_options)
+
+# Function to generate mermaid code from user's input
+def generate_mermaid_code(description, flowchart_type):
+    try:
+        # Call OpenAI's API to generate code for a flowchart based on the user's description
+        response = openai.Completion.create(
+            engine="gpt-3.5-turbo-instruct",
+            prompt=f"Generate mermaid code for a {flowchart_type} that describes: {description}",
+            temperature=0.5,
+            max_tokens=1000,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0,
+            stop=["```"]  # Assuming that the user's input will end with a markdown code block
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Function to render the Mermaid diagram
+def render_mermaid_diagram(mermaid_code):
+    display(Markdown(f"```mermaid\n{mermaid_code}\n```"))
+
+# Main program execution
+if __name__ == "__main__":
+    description = get_flowchart_description()
+    choice = get_flowchart_type()
+    tick_box_list = create_tick_box_list(choice)
+    print("\nYou have selected:\n")
+    print(tick_box_list)
+    # Convert choice number to flowchart type for the prompt
+    flowchart_types = { "1": "Process Flowchart", "2": "Workflow Diagram", "3": "Organizational Chart", "4": "Data Flow Diagram", "5": "Other" }
+    flowchart_type = flowchart_types.get(choice, "Other")
+    mermaid_code = generate_mermaid_code(description, flowchart_type)
+    if mermaid_code:
+        print("\nGenerated Mermaid code:\n")
+        print(mermaid_code)
+        render_mermaid_diagram(mermaid_code)
+    else:
+        print("Failed to generate Mermaid code.")
