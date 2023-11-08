@@ -1,9 +1,10 @@
 import openai
 import os
-from IPython.display import display, Markdown
+import webbrowser
+import tempfile
 
-# Assuming the OPENAI_API_KEY is set in your environment variables
-openai.api_key = 'XXXXXXXXX'
+# Make sure to set your API key correctly in your environment variables
+openai.api_key = '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'
 
 # Function to ask user what they want to make a flowchart diagram of
 def get_flowchart_description():
@@ -31,6 +32,7 @@ def create_tick_box_list(choice):
 def generate_mermaid_code(description, flowchart_type):
     additional_instructions = "\nInclude conditions, loops, and multiple end points where applicable. Provide detailed steps and use clear labeling for each element."
     full_description = f"{description}{additional_instructions}"
+    mermaid_code = None  # Initialize mermaid_code to None before try block
     try:
         # Call OpenAI's API with a larger max_tokens value for more complex flowcharts
         response = openai.Completion.create(
@@ -43,15 +45,37 @@ def generate_mermaid_code(description, flowchart_type):
             presence_penalty=0.0,
             stop=["```"]  # The stop sequence to signal the end of a Mermaid code block in markdown
         )
-        return response.choices[0].text.strip()
+        mermaid_code = response.choices[0].text.strip()
     except Exception as e:
         print(f"An error occurred: {e}")
+    return mermaid_code
 
-# Function to render the Mermaid diagram
-def render_mermaid_diagram(mermaid_code):
-    display(Markdown(f"```mermaid\n{mermaid_code}\n```"))
+# Function to render the Mermaid diagram in the default web browser
+def render_mermaid_diagram_in_browser(mermaid_code):
+    # Create a temporary HTML file with the mermaid diagram and ensure it's closed before opening
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html') as f:
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>Mermaid Diagram</title>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({{startOnLoad:true}});</script>
+        </head>
+        <body>
+        <div class="mermaid">
+        {mermaid_code}
+        </div>
+        </body>
+        </html>
+        """
+        f.write(html_content.encode('utf-8'))
+        temp_file_name = f.name  # Save the name for later use
 
-# Main program execution
+    # Now that the file is closed, open it in the browser
+    webbrowser.open('file://' + temp_file_name)
+
+# Main program execution with proper error handling around the mermaid_code access
 if __name__ == "__main__":
     description = get_flowchart_description()
     choice = get_flowchart_type()
@@ -59,12 +83,13 @@ if __name__ == "__main__":
     print("\nYou have selected:\n")
     print(tick_box_list)
     # Convert choice number to flowchart type for the prompt
-    flowchart_types = { "1": "Process Flowchart", "2": "Workflow Diagram", "3": "Organizational Chart", "4": "Data Flow Diagram", "5": "Other" }
+    flowchart_types = {"1": "Process Flowchart", "2": "Workflow Diagram", "3": "Organizational Chart", "4": "Data Flow Diagram", "5": "Other"}
     flowchart_type = flowchart_types.get(choice, "Other")
     mermaid_code = generate_mermaid_code(description, flowchart_type)
+    
     if mermaid_code:
         print("\nGenerated Mermaid code:\n")
         print(mermaid_code)
-        render_mermaid_diagram(mermaid_code)
+        render_mermaid_diagram_in_browser(mermaid_code)
     else:
         print("Failed to generate Mermaid code.")
