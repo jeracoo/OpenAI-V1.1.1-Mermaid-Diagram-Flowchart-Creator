@@ -4,7 +4,7 @@ import webbrowser
 import tempfile
 
 # Make sure to set your API key correctly in your environment variables
-openai.api_key = 'XXXXX'
+openai.api_key = 'XXXXXXXXXXXXXXXX'
 
 # Function to ask user what they want to make a flowchart diagram of
 def get_flowchart_description():
@@ -48,6 +48,9 @@ def generate_mermaid_code(description, flowchart_type):
         mermaid_code = response.choices[0].text.strip()
     except Exception as e:
         print(f"An error occurred: {e}")
+        import traceback
+        traceback.print_exc()  # This will print the stack trace which can be very informative.
+
     return mermaid_code
 
 # Function to render the Mermaid diagram in the default web browser
