@@ -4,7 +4,7 @@ import webbrowser
 import tempfile
 
 # Make sure to set your API key correctly in your environment variables
-openai.api_key = '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'
+openai.api_key = 'XXXXX'
 
 # Function to ask user what they want to make a flowchart diagram of
 def get_flowchart_description():
