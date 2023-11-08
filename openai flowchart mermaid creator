@@ -3,7 +3,7 @@ import os
 from IPython.display import display, Markdown
 
 # Assuming the OPENAI_API_KEY is set in your environment variables
-openai.api_key = 'XXXXXXXXXX'
+openai.api_key = 'XXXXXXXXX'
 
 # Function to ask user what they want to make a flowchart diagram of
 def get_flowchart_description():
@@ -27,19 +27,21 @@ def create_tick_box_list(choice):
     ticked_options = ["[x] " + options[int(choice)-1] if str(index+1) == choice else "[ ] " + option for index, option in enumerate(options)]
     return "\n".join(ticked_options)
 
-# Function to generate mermaid code from user's input
+# Update the generate_mermaid_code function to handle more complexity
 def generate_mermaid_code(description, flowchart_type):
+    additional_instructions = "\nInclude conditions, loops, and multiple end points where applicable. Provide detailed steps and use clear labeling for each element."
+    full_description = f"{description}{additional_instructions}"
     try:
-        # Call OpenAI's API to generate code for a flowchart based on the user's description
+        # Call OpenAI's API with a larger max_tokens value for more complex flowcharts
         response = openai.Completion.create(
             engine="gpt-3.5-turbo-instruct",
-            prompt=f"Generate mermaid code for a {flowchart_type} that describes: {description}",
+            prompt=f"Generate mermaid code for a {flowchart_type} that describes: {full_description}",
             temperature=0.5,
-            max_tokens=1000,
+            max_tokens=1500,  # Increased from 1000 to 1500
             top_p=1.0,
             frequency_penalty=0.0,
             presence_penalty=0.0,
-            stop=["```"]  # Assuming that the user's input will end with a markdown code block
+            stop=["```"]  # The stop sequence to signal the end of a Mermaid code block in markdown
         )
         return response.choices[0].text.strip()
     except Exception as e:
